@@ -26,7 +26,11 @@ SECRET_KEY = "django-insecure-s*-4aq_ac=i6&4vmb)j8_9l6nzzj+b)qeqjpn9d)m*l0k@23o=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "kudamoney.onrender.com",
+    "localhost",
+    "127.0.0.1"
+]
 
 
 # Application definition
