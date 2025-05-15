@@ -1,9 +1,16 @@
 import random
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import serializers
+from .models import UserProfile
+from rest_framework.views import APIView
+from .serializers import KYCUploadSerializer
 
 from .models import User, UserProfile, OTPCode
 from .serializers import (
@@ -82,6 +89,24 @@ class UserProfileView(views.APIView):
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response({"error": "Profil non trouvé."}, status=404)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class KYCUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  # pour gérer les fichiers
+
+    def post(self, request, *args, **kwargs):
+        try:
+            profile = request.user.profile  # UserProfile lié à l'utilisateur
+        except UserProfile.DoesNotExist:
+            profile = UserProfile(user=request.user)
+
+        serializer = KYCUploadSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'KYC envoyé avec succès.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminVerifyProfileView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()

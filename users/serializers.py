@@ -59,6 +59,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.kyc_selfie.url)
         return None
 
+class KYCUploadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['kyc_photo_id', 'kyc_photo_id_num', 'kyc_selfie']
 
 
 class OTPSerializer(serializers.Serializer):
