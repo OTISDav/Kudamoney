@@ -39,6 +39,14 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'kyc_selfie_url', 'is_verified'
         ]
 
+    def get_user(self, obj):
+        return {
+            "id": obj.user.id,
+            "username": obj.user.username,
+            "phone": obj.user.phone,
+            "pays": obj.user.pays
+        }
+
     def get_kyc_photo_id_url(self, obj):
         request = self.context.get('request')
         if obj.kyc_photo_id and request:
@@ -50,6 +58,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if obj.kyc_selfie and request:
             return request.build_absolute_uri(obj.kyc_selfie.url)
         return None
+
+
 
 class OTPSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, write_only=True)
