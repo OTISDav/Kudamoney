@@ -27,7 +27,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user = SimpleUserSerializer(read_only=True)
+    user = serializers.SerializerMethodField()
     kyc_photo_id_url = serializers.SerializerMethodField()
     kyc_selfie_url = serializers.SerializerMethodField()
 

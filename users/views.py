@@ -76,8 +76,8 @@ class UserProfileView(views.APIView):
 
     def get(self, request):
         try:
-            user = request.user.user
-            serializer = UserProfileSerializer(user, context={'request': request})
+            profile = request.user.profile
+            serializer = UserProfileSerializer(profile, context={'request': request})
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response({"error": "Profil non trouvé."}, status=404)
