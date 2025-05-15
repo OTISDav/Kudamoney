@@ -32,13 +32,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """
     Serializer pour le modèle UserProfile.
     """
-    user = serializers.PrimaryKeyRelatedField(read_only=True)  # Change ici
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ('id', 'user', 'kyc_photo_id', 'kyc_photo_id_num', 'kyc_selfie', 'is_verified')
+        fields = ('id', 'user', 'kyc_photo_id_num', 'is_verified') # Champs d'image commentés
         read_only_fields = ('is_verified',)
-
 
 class OTPSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20, write_only=True)
