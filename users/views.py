@@ -110,12 +110,17 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     Vue pour récupérer et mettre à jour le profil de l'utilisateur connecté.
     """
-    queryset = User.objects.all()
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        return UserProfile.objects.filter(user=self.request.user)
+
     def get_object(self):
-        return self.request.user
+        return self.get_queryset().first()
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user) # Assurez-vous que l'utilisateur ne peut pas être changé
 
 
 
