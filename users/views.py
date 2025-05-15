@@ -16,8 +16,7 @@ def generate_otp():
 
 def send_otp(phone, otp):
     print(f"OTP envoyé à {phone} : {otp}")
-    pass  # remplace par envoi réel via Twilio, etc.
-
+    pass
 class UserRegistrationView(views.APIView):
     permission_classes = [AllowAny]
 
@@ -77,8 +76,8 @@ class UserProfileView(views.APIView):
 
     def get(self, request):
         try:
-            profile = request.user.profile
-            serializer = UserProfileSerializer(profile, context={'request': request})
+            user = request.user.user
+            serializer = UserProfileSerializer(user, context={'request': request})
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response({"error": "Profil non trouvé."}, status=404)
