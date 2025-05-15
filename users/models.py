@@ -69,7 +69,7 @@ class UserProfile(models.Model):
     is_verified = models.BooleanField(default=False, verbose_name="Vérifié")
 
     def __str__(self):
-        return f"Profil de {self.user.username}"
+        return f"Profil utilisateur #{self.user_id}"
 
 
 class OTPCode(models.Model):

@@ -1,145 +1,96 @@
 import random
-
-from django.conf import settings
 from django.contrib.auth import authenticate
-from rest_framework import generics, permissions, status, views, response
-from rest_framework.permissions import AllowAny
+from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, UserProfile, OTPCode
-from .serializers import OTPSerializer, UserProfileSerializer
-
-
+from .serializers import (
+    UserRegistrationSerializer, OTPSerializer,
+    UserProfileSerializer, UserSerializer
+)
 
 def generate_otp():
     return str(random.randint(100000, 999999))
 
 def send_otp(phone, otp):
-    # Plutôt que d'envoyer un SMS, afficher l'OTP dans la console
-    print(f"OTP pour {phone}: {otp}")
-    """
-    # envoi de SMS avec Twilio 
-    from twilio.rest import Client
-    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    message = client.messages.create(
-        to=phone,
-        from_=settings.TWILIO_PHONE_NUMBER,
-        body=f"Votre code de vérification est : {otp}",
-    )
-    print(message.sid)
-    """
-    pass # laisser vide pour ne pas envoyer de SMS
-
+    print(f"OTP envoyé à {phone} : {otp}")
+    pass  # remplace par envoi réel via Twilio, etc.
 
 class UserRegistrationView(views.APIView):
     permission_classes = [AllowAny]
-    def post(self, request, *args, **kwargs):
-        phone = request.data.get('phone')
-        password = request.data.get('password')
-        pays = request.data.get('pays')
-        username = request.data.get('username')
 
-        if not phone or not password or not pays or not username:
-            return response.Response({"error": "Tous les champs sont requis."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Créez l'utilisateur
-        user = User.objects.create_user(phone=phone, password=password, pays=pays, username=username)
-
-        # Générez un OTP
-        otp = generate_otp()
-        OTPCode.objects.create(user=user, code=otp)
-        send_otp(phone, otp)  # Utilisez la fonction d'envoi d'OTP
-
-        return response.Response({
-            "message": "Utilisateur inscrit avec succès. OTP envoyé pour vérification."
-        }, status=status.HTTP_201_CREATED)
-
-
+    def post(self, request):
+        serializer = UserRegistrationSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            otp = generate_otp()
+            OTPCode.objects.create(user=user, code=otp)
+            send_otp(user.phone, otp)
+            return Response({
+                "message": "Utilisateur créé. OTP envoyé pour vérification."
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserOTPVerificationView(views.APIView):
     serializer_class = OTPSerializer
     permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(raise_exception=True):
+    def post(self, request):
+        serializer = OTPSerializer(data=request.data)
+        if serializer.is_valid():
             user = serializer.validated_data['user']
-            # Supprimer l'OTP après vérification
             OTPCode.objects.filter(user=user).delete()
-            # Générer un token JWT
             refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            return response.Response({
-                'access_token': access_token,
+            return Response({
+                'access_token': str(refresh.access_token),
                 'refresh_token': str(refresh),
-                'message': 'OTP vérifié avec succès. Utilisateur connecté.'
+                'message': "OTP vérifié. Connexion réussie."
             }, status=status.HTTP_200_OK)
-        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserLoginView(views.APIView):
-    """
-    Vue pour la connexion d'un utilisateur.
-    """
     permission_classes = [AllowAny]
-    def post(self, request, *args, **kwargs):
+
+    def post(self, request):
         phone = request.data.get('phone')
         password = request.data.get('password')
 
         if not phone or not password:
-            return response.Response({"error": "Numéro de téléphone et mot de passe requis."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Téléphone et mot de passe requis."}, status=400)
 
-        user = authenticate(request, phone=phone, password=password)
-        # Utilisez authenticate
-        if user is not None:
-            # Générer un OTP
-            otp = generate_otp()
-            OTPCode.objects.create(user=user, code=otp)
-            send_otp(phone, otp)  # Utilisez la fonction d'envoi d'OTP
+        try:
+            user = User.objects.get(phone=phone)
+            if user.check_password(password):
+                otp = generate_otp()
+                OTPCode.objects.create(user=user, code=otp)
+                send_otp(phone, otp)
+                return Response({"message": "OTP envoyé pour vérification."}, status=200)
+            else:
+                return Response({"error": "Mot de passe incorrect."}, status=401)
+        except User.DoesNotExist:
+            return Response({"error": "Utilisateur introuvable."}, status=404)
 
-            return response.Response({
-                "message": "Connexion réussie. OTP envoyé pour vérification."
-            }, status=status.HTTP_200_OK)
-        else:
-            return response.Response({"error": "Numéro de téléphone ou mot de passe invalide."}, status=status.HTTP_401_UNAUTHORIZED)
+class UserProfileView(views.APIView):
+    permission_classes = [IsAuthenticated]
 
-
-
-class UserProfileView(generics.RetrieveUpdateAPIView):
-    """
-    Vue pour récupérer et mettre à jour le profil de l'utilisateur connecté.
-    """
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return UserProfile.objects.filter(user=self.request.user)
-
-    def get_object(self):
-        return self.get_queryset().first()
-
-    def perform_update(self, serializer):
-        serializer.save(user=self.request.user) # Assurez-vous que l'utilisateur ne peut pas être changé
-
-class UserListView(generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAdminUser]  # Seulement pour les administrateurs
-
-
+    def get(self, request):
+        try:
+            profile = request.user.profile
+            serializer = UserProfileSerializer(profile, context={'request': request})
+            return Response(serializer.data)
+        except UserProfile.DoesNotExist:
+            return Response({"error": "Profil non trouvé."}, status=404)
 
 class AdminVerifyProfileView(generics.UpdateAPIView):
-    """
-    Vue pour permettre à un administrateur de vérifier un profil utilisateur.
-    """
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAdminUser] # Seul un admin peut accéder
+    permission_classes = [permissions.IsAdminUser]
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.is_verified = True # L'admin met le profil à True
+        instance.is_verified = True
         instance.save()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(instance, context={'request': request})
+        return Response(serializer.data)
