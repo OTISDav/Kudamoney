@@ -22,7 +22,7 @@ def generate_otp():
 def send_otp(phone, otp):
     print(f"OTP envoyé à {phone} : {otp}")
 
-# ✅ Enregistrement utilisateur
+
 class UserRegistrationView(views.APIView):
     permission_classes = [AllowAny]
 
@@ -37,6 +37,8 @@ class UserRegistrationView(views.APIView):
                 "message": "Utilisateur créé. OTP envoyé pour vérification.",
                 "user_id": user.id
             }, status=status.HTTP_201_CREATED)
+
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # ✅ Vérification OTP
@@ -91,7 +93,7 @@ class UserProfileView(views.APIView):
         except UserProfile.DoesNotExist:
             return Response({"error": "Profil non trouvé."}, status=404)
 
-# ✅ Envoi de documents KYC (accès public + sans CSRF)
+
 @method_decorator(csrf_exempt, name='dispatch')
 class KYCUploadView(views.APIView):
     authentication_classes = []
@@ -110,7 +112,7 @@ class KYCUploadView(views.APIView):
             return Response({'message': 'KYC envoyé avec succès.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# ✅ Changement de mot de passe (authentification requise)
+
 class ChangePasswordView(views.APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ChangePasswordSerializer
@@ -122,7 +124,7 @@ class ChangePasswordView(views.APIView):
             return Response({"message": "Mot de passe changé avec succès."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# ✅ Vérification profil par un admin
+
 class AdminVerifyProfileView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
