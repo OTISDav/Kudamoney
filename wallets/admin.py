@@ -3,9 +3,5 @@ from .models import Wallet
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'balance', 'created_at', 'updated_at')  # Ajoute ici les champs existants
+    list_display = ('id', 'user', 'balance')  # Supprimé 'created_at' et 'updated_at'
     search_fields = ('user__username', 'user__phone')
-    list_filter = ('created_at',)
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
