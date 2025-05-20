@@ -2,31 +2,27 @@ import random
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate
 from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import serializers
-from .models import UserProfile
-from rest_framework.views import APIView
-from .serializers import KYCUploadSerializer
-from rest_framework import views, response, status
-from rest_framework.permissions import IsAuthenticated
-from .serializers import ChangePasswordSerializer
 
 from .models import User, UserProfile, OTPCode
 from .serializers import (
     UserRegistrationSerializer, OTPSerializer,
-    UserProfileSerializer, UserSerializer
+    UserProfileSerializer, UserSerializer,
+    KYCUploadSerializer, ChangePasswordSerializer
 )
 
+# Génération aléatoire de code OTP
 def generate_otp():
     return str(random.randint(100000, 999999))
 
+# Simulation d'envoi OTP
 def send_otp(phone, otp):
     print(f"OTP envoyé à {phone} : {otp}")
-    pass
+
+# ✅ Enregistrement utilisateur
 class UserRegistrationView(views.APIView):
     permission_classes = [AllowAny]
 
@@ -39,12 +35,12 @@ class UserRegistrationView(views.APIView):
             send_otp(user.phone, otp)
             return Response({
                 "message": "Utilisateur créé. OTP envoyé pour vérification.",
-                "user_id": user.id  # Retourner l'ID de l'utilisateur
+                "user_id": user.id
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# ✅ Vérification OTP
 class UserOTPVerificationView(views.APIView):
-    serializer_class = OTPSerializer
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -60,6 +56,7 @@ class UserOTPVerificationView(views.APIView):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# ✅ Connexion (avec génération OTP)
 class UserLoginView(views.APIView):
     permission_classes = [AllowAny]
 
@@ -76,12 +73,13 @@ class UserLoginView(views.APIView):
                 otp = generate_otp()
                 OTPCode.objects.create(user=user, code=otp)
                 send_otp(phone, otp)
-                return Response({"message": "OTP envoyé pour vérification.", "user_id": user.id}, status=200) #retourner l'id
+                return Response({"message": "OTP envoyé pour vérification.", "user_id": user.id}, status=200)
             else:
                 return Response({"error": "Mot de passe incorrect."}, status=401)
         except User.DoesNotExist:
             return Response({"error": "Utilisateur introuvable."}, status=404)
 
+# ✅ Vue profil utilisateur (authentification requise)
 class UserProfileView(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -89,23 +87,19 @@ class UserProfileView(views.APIView):
         try:
             profile = request.user.profile
             serializer = UserProfileSerializer(profile, context={'request': request})
-
             return Response(serializer.data)
         except UserProfile.DoesNotExist:
             return Response({"error": "Profil non trouvé."}, status=404)
 
-
-
+# ✅ Envoi de documents KYC (accès public + sans CSRF)
 @method_decorator(csrf_exempt, name='dispatch')
-class KYCUploadView(APIView):
-    # permission_classes = [IsAuthenticated]
-
-    parser_classes = [MultiPartParser, FormParser]  # pour gérer les fichiers
+class KYCUploadView(views.APIView):
+    authentication_classes = []
     permission_classes = [AllowAny]
+    parser_classes = [MultiPartParser, FormParser]
 
-    def post(self, request, user_id, *args, **kwargs): #user_id esta aqui
+    def post(self, request, user_id, *args, **kwargs):
         try:
-            #profile = request.user.profile  # UserProfile lié à l'utilisateur
             profile = UserProfile.objects.get(user_id=user_id)
         except UserProfile.DoesNotExist:
             return Response({"error": "UserProfile not found for this user."}, status=status.HTTP_404_NOT_FOUND)
@@ -116,29 +110,23 @@ class KYCUploadView(APIView):
             return Response({'message': 'KYC envoyé avec succès.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-
-
+# ✅ Changement de mot de passe (authentification requise)
 class ChangePasswordView(views.APIView):
-
-    serializer_class = ChangePasswordSerializer
     permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data, context={'request': request})
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return response.Response({"message": "Mot de passe changé avec succès."}, status=status.HTTP_200_OK)
-        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Mot de passe changé avec succès."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
+# ✅ Vérification profil par un admin
 class AdminVerifyProfileView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
