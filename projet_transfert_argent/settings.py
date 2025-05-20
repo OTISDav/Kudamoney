@@ -102,6 +102,11 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+
+    'https://kudamoney.onrender.com/'
+]
+
 
 WSGI_APPLICATION = "projet_transfert_argent.wsgi.application"
 
