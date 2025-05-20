@@ -38,7 +38,8 @@ class UserRegistrationView(views.APIView):
             OTPCode.objects.create(user=user, code=otp)
             send_otp(user.phone, otp)
             return Response({
-                "message": "Utilisateur créé. OTP envoyé pour vérification."
+                "message": "Utilisateur créé. OTP envoyé pour vérification.",
+                "user_id": user.id  # Retourner l'ID de l'utilisateur
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,7 +76,7 @@ class UserLoginView(views.APIView):
                 otp = generate_otp()
                 OTPCode.objects.create(user=user, code=otp)
                 send_otp(phone, otp)
-                return Response({"message": "OTP envoyé pour vérification."}, status=200)
+                return Response({"message": "OTP envoyé pour vérification.", "user_id": user.id}, status=200) #retourner l'id
             else:
                 return Response({"error": "Mot de passe incorrect."}, status=401)
         except User.DoesNotExist:
@@ -94,16 +95,19 @@ class UserProfileView(views.APIView):
             return Response({"error": "Profil non trouvé."}, status=404)
 
 
+
 @method_decorator(csrf_exempt, name='dispatch')
 class KYCUploadView(APIView):
     # permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]  # pour gérer les fichiers
+    permission_classes = [AllowAny]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, user_id, *args, **kwargs): #user_id esta aqui
         try:
-            profile = request.user.profile  # UserProfile lié à l'utilisateur
+            #profile = request.user.profile  # UserProfile lié à l'utilisateur
+            profile = UserProfile.objects.get(user_id=user_id)
         except UserProfile.DoesNotExist:
-            profile = UserProfile(user=request.user)
+            return Response({"error": "UserProfile not found for this user."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = KYCUploadSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():

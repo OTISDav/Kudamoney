@@ -5,29 +5,46 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 
+
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'phone', 'pays']
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'phone', 'pays', 'first_name', 'last_name', 'email')
 
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    kyc_photo_id = serializers.ImageField(required=False)  # Ajout du champ KYC
+    kyc_selfie = serializers.ImageField(required=False)  # Ajout du champ KYC
 
     class Meta:
         model = User
-        fields = ('phone', 'password', 'pays', 'username')
+        fields = ('phone', 'password', 'pays', 'username', 'kyc_photo_id', 'kyc_selfie') # Ajout des champs au Meta
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = User(**validated_data)
+        # Récupérer les données KYC avant la création de l'utilisateur
+        kyc_photo_id = validated_data.pop('kyc_photo_id', None)
+        kyc_selfie = validated_data.pop('kyc_selfie', None)
+
+        user = User.objects.create_user(phone=validated_data['phone'], username=validated_data['username'],
+                                       pays=validated_data['pays'])
         user.set_password(password)
         user.save()
+
+        # Créer UserProfile et enregistrer les données KYC
+        profile = UserProfile.objects.create(user=user, kyc_photo_id=kyc_photo_id,
+                                             kyc_selfie=kyc_selfie)  # Créer le profil ici
         return user
+
+
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
@@ -62,6 +79,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.kyc_selfie.url)
         return None
 
+
 class KYCUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -94,11 +112,10 @@ class OTPSerializer(serializers.Serializer):
         return data
 
 
-
 User = get_user_model()
 
-class ChangePasswordSerializer(serializers.Serializer):
 
+class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 
