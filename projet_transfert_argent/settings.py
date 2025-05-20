@@ -103,8 +103,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-
-    'https://kudamoney.onrender.com/'
+    'https://kudamoney.onrender.com/',
+    "http://localhost:54282",
+    "http://127.0.0.1:8000"
 ]
 
 
