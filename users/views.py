@@ -11,6 +11,9 @@ from rest_framework import serializers
 from .models import UserProfile
 from rest_framework.views import APIView
 from .serializers import KYCUploadSerializer
+from rest_framework import views, response, status
+from rest_framework.permissions import IsAuthenticated
+from .serializers import ChangePasswordSerializer
 
 from .models import User, UserProfile, OTPCode
 from .serializers import (
@@ -107,6 +110,25 @@ class KYCUploadView(APIView):
             serializer.save()
             return Response({'message': 'KYC envoyé avec succès.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+class ChangePasswordView(views.APIView):
+
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return response.Response({"message": "Mot de passe changé avec succès."}, status=status.HTTP_200_OK)
+        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class AdminVerifyProfileView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()

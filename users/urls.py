@@ -5,7 +5,8 @@ from .views import (
     UserLoginView,
     UserProfileView,
     AdminVerifyProfileView,
-    KYCUploadView
+    KYCUploadView,
+    ChangePasswordView
 )
 
 urlpatterns = [
@@ -14,5 +15,6 @@ urlpatterns = [
     path('login/', UserLoginView.as_view(), name='login'),
     path('kyc/', KYCUploadView.as_view(), name='kyc-upload'),
     path('profile/', UserProfileView.as_view(), name='profile'),
+    path('change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('admin/verify-profile/<int:pk>/', AdminVerifyProfileView.as_view(), name='verify-profile'),
 ]

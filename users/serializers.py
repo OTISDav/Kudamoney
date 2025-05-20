@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from .models import User, UserProfile, OTPCode
 from django.utils import timezone
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 
 class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -89,3 +92,29 @@ class OTPSerializer(serializers.Serializer):
 
         data['user'] = user
         return data
+
+
+
+User = get_user_model()
+
+class ChangePasswordSerializer(serializers.Serializer):
+
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("Ancien mot de passe incorrect.")
+        return value
+
+    def validate(self, data):
+        if data['old_password'] == data['new_password']:
+            raise serializers.ValidationError("Le nouveau mot de passe doit être différent de l'ancien.")
+        return data
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.password = make_password(self.validated_data['new_password'])
+        user.save()
+        return user
