@@ -1,9 +1,9 @@
-from rest_framework import serializers
 from .models import User, UserProfile, OTPCode
 from django.utils import timezone
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+from wallets.models import Wallet
 
 
 class SimpleUserSerializer(serializers.ModelSerializer):
@@ -42,6 +42,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         # Créer UserProfile et enregistrer les données KYC
         profile = UserProfile.objects.create(user=user, kyc_photo_id=kyc_photo_id,
                                              kyc_selfie=kyc_selfie)  # Créer le profil ici
+        # Créer un Wallet pour le nouvel utilisateur (NOUVEAU)
+        Wallet.objects.create(user=user)
+
         return user
 
 
