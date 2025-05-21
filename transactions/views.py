@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from rest_framework import generics, views, response, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
