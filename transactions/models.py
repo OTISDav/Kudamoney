@@ -31,7 +31,7 @@ class DiscountCode(models.Model):
     """
     Modèle pour gérer les codes de réduction/promotionnels.
     """
-    code = models.CharField(max_length=20, unique=True, default=uuid.uuid4, verbose_name="Code de réduction")
+    code = models.CharField(max_length=100, unique=True, verbose_name="Code de réduction")
     description = models.CharField(max_length=255, blank=True, verbose_name="Description")
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name="Pourcentage de réduction") # Ex: 10.00 pour 10%
     fixed_amount_discount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Montant de réduction fixe") # Ex: 5.00 pour 5 unités

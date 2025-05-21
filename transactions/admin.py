@@ -13,7 +13,7 @@ class DiscountCodeAdmin(admin.ModelAdmin):
     )
     list_filter = ('is_active', 'valid_from', 'valid_until', 'created_by')
     search_fields = ('code', 'description')
-    readonly_fields = ('code', 'uses_count', 'created_by', 'valid_from') # Ces champs sont auto-générés ou mis à jour par le système
+    readonly_fields = ('uses_count', 'created_by', 'valid_from') # Ces champs sont auto-générés ou mis à jour par le système
 
     fieldsets = (
         (None, {
