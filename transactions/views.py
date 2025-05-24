@@ -2,18 +2,16 @@
 from rest_framework import generics, views, response, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Transaction, DiscountCode, TRANSACTION_TYPE_CHOICES
-from .serializers import TransactionSerializer, DiscountCodeSerializer, InitiateWithdrawalSerializer, \
-    RechargeSerializer  # Importez RechargeSerializer
+from .serializers import TransactionSerializer, DiscountCodeSerializer, InitiateWithdrawalSerializer, RechargeSerializer
 from wallets.models import Wallet
 from django.db import transaction
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
-from users.models import User  # Assurez-vous que User est importé
+from users.models import User
 from django.db.models import Q
 from django.utils import timezone
 from decimal import Decimal
-from django.db.models import F  # Importez F pour les opérations atomiques
+from django.db.models import F
 
-# Importez la fonction d'envoi de notification depuis core.utils
 from core.utils import send_notification_to_user
 
 
@@ -41,7 +39,7 @@ class InitiateTransactionView(views.APIView):
                 discount_code_obj = DiscountCode.objects.get(
                     code=discount_code_str,
                     is_active=True,
-                    uses_count__lt=F('max_uses')  # Utilisation de F pour éviter les conditions de course
+                    uses_count__lt=F('max_uses')
                 )
                 if discount_code_obj.valid_until and discount_code_obj.valid_until < timezone.now():
                     raise ValidationError("Le code de réduction a expiré.")
@@ -81,7 +79,7 @@ class InitiateTransactionView(views.APIView):
             with transaction.atomic():
                 expediteur_wallet.balance = F('balance') - final_amount
                 expediteur_wallet.save(update_fields=['balance'])
-                expediteur_wallet.refresh_from_db()  # Rafraîchir pour obtenir la nouvelle balance
+                expediteur_wallet.refresh_from_db()
 
                 beneficiaire_wallet, created = Wallet.objects.get_or_create(user=beneficiaire)
                 beneficiaire_wallet.balance = F('balance') + final_amount
@@ -182,7 +180,7 @@ class InitiateWithdrawalView(views.APIView):
             raise ValidationError(f"Erreur lors de l'initiation du retrait : {e}")
 
 
-class RechargeAccountView(views.APIView):  # NOUVEAU : Vue pour recharger un compte
+class RechargeAccountView(views.APIView):
     """
     Vue pour permettre à l'utilisateur de recharger son propre compte.
     À l'avenir, cela s'intégrerait avec une passerelle de paiement.
@@ -201,18 +199,19 @@ class RechargeAccountView(views.APIView):  # NOUVEAU : Vue pour recharger un com
             with transaction.atomic():
                 user_wallet.balance = F('balance') + amount
                 user_wallet.save(update_fields=['balance'])
-                user_wallet.refresh_from_db()  # Rafraîchir pour obtenir la nouvelle balance
+                user_wallet.refresh_from_db()
 
                 recharge_transaction = Transaction.objects.create(
-                    sender=None,  # Pas d'expéditeur externe pour une recharge directe
+                    sender=None,
                     receiver=request.user,
                     amount=amount,
                     final_amount=amount,
-                    status='success',  # Supposons le succès direct pour l'instant
+                    status='success',
                     transaction_type='recharge'
                 )
 
-                message_recharge = f"Votre compte a été rechargé de {amount} {user_wallet.currency} avec succès. Nouveau solde : {user_wallet.balance} {user_wallet.currency}."
+                # Message ajusté pour ne pas faire référence à .currency
+                message_recharge = f"Votre compte a été rechargé de {amount} XOF avec succès. Nouveau solde : {user_wallet.balance} XOF."
                 send_notification_to_user(request.user, message_recharge, notification_type='transaction',
                                           transaction_obj=recharge_transaction)
 
@@ -223,7 +222,6 @@ class RechargeAccountView(views.APIView):  # NOUVEAU : Vue pour recharger un com
                 }, status=status.HTTP_200_OK)
 
         except Exception as e:
-            # En cas d'échec, nous pouvons vouloir marquer la transaction comme échouée si elle a été créée
             if 'recharge_transaction' in locals():
                 recharge_transaction.status = 'failed'
                 recharge_transaction.save()

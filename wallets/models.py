@@ -6,12 +6,6 @@ from decimal import Decimal
 class Wallet(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet', verbose_name="Utilisateur")
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=Decimal('0.00'), verbose_name="Solde")
-    # NOUVEAU : Champ pour la devise du portefeuille
-    currency = models.CharField(
-        max_length=5,
-        default='XAF',  # Exemple de devise par défaut (Franc CFA Ouest-Africain pour le Togo)
-        verbose_name="Devise"
-    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de Création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de Mise à Jour")
 
@@ -20,7 +14,8 @@ class Wallet(models.Model):
         verbose_name_plural = "Portefeuilles"
 
     def __str__(self):
-        return f"Portefeuille de {self.user.username} - Solde: {self.balance} {self.currency}"
+        # Afficher la devise XOF en dur si elle n'est pas stockée
+        return f"Portefeuille de {self.user.username} - Solde: {self.balance} XOF"
 
     def deposit(self, amount):
         if not isinstance(amount, (int, float, Decimal)) or amount <= 0:
