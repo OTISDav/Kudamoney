@@ -1,13 +1,16 @@
+# users/views.py
 import random
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate
 from rest_framework import generics, permissions, status, views
-from rest_framework.response import Response  # Correction: Importation directe de Response
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework import serializers
+from rest_framework.views import APIView  # <--- Assurez-vous que cette ligne est présente
+from rest_framework.exceptions import AuthenticationFailed
 
 from .models import User, UserProfile, OTPCode, ReferralCode
 from .serializers import (
@@ -17,6 +20,7 @@ from .serializers import (
     ChangePasswordSerializer, SetTransactionPinSerializer
 )
 
+# Importez la fonction d'envoi de notification depuis core.utils
 from core.utils import send_notification_to_user
 
 
