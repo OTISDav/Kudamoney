@@ -1,20 +1,30 @@
+# users/urls.py
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
-    UserRegistrationView,
-    UserOTPVerificationView,
-    UserLoginView,
-    UserProfileView,
-    AdminVerifyProfileView,
-    KYCUploadView,
-    ChangePasswordView
+    UserRegistrationView, UserLoginView, UserProfileView,
+    UserOTPVerificationView, KYCUploadView, ChangePasswordView,
+    AdminVerifyProfileView, ReferralCodeView, SetTransactionPinView,
+    UserListView # Assurez-vous que UserListView est importé si vous le gardez
 )
 
 urlpatterns = [
-    path('register/', UserRegistrationView.as_view(), name='register'),
-    path('verify-otp/', UserOTPVerificationView.as_view(), name='verify-otp'),
-    path('login/', UserLoginView.as_view(), name='login'),
-    path('kyc/<int:user_id>/', KYCUploadView.as_view(), name='user_kyc_upload'),
-    path('profile/', UserProfileView.as_view(), name='profile'),
+    # Authentification et gestion de compte
+    path('register/', UserRegistrationView.as_view(), name='user_registration'),
+    path('verify-otp/', UserOTPVerificationView.as_view(), name='user_otp_verification'),
+    path('login/', UserLoginView.as_view(), name='user_login'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Pour rafraîchir les tokens JWT
+
+    # Profil utilisateur et KYC
+    path('profile/', UserProfileView.as_view(), name='user_profile'),
+    path('kyc-upload/', KYCUploadView.as_view(), name='user_kyc_upload'), # URL pour l'upload KYC (après inscription)
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
-    path('admin/verify-profile/<int:pk>/', AdminVerifyProfileView.as_view(), name='verify-profile'),
+    path('set-pin/', SetTransactionPinView.as_view(), name='set_transaction_pin'),
+
+    # Parrainage
+    path('referral-code/', ReferralCodeView.as_view(), name='get_referral_code'),
+
+    # Vues d'administration
+    path('admin/verify-profile/<int:pk>/', AdminVerifyProfileView.as_view(), name='admin_verify_profile'),
+    path('admin/list/', UserListView.as_view(), name='user_list_admin'), # Pour lister les utilisateurs (admin)
 ]

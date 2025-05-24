@@ -5,12 +5,13 @@ from .models import Transaction, DiscountCode, TRANSACTION_TYPE_CHOICES
 from .serializers import TransactionSerializer, DiscountCodeSerializer, InitiateWithdrawalSerializer
 from wallets.models import Wallet
 from django.db import transaction
-from rest_framework.exceptions import ValidationError, AuthenticationFailed # Importez AuthenticationFailed
-from users.models import User
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
+from users.models import User  # Assurez-vous que User est importé
 from django.db.models import Q
 from django.utils import timezone
 from decimal import Decimal
 
+# Importez la fonction d'envoi de notification depuis core.utils
 from core.utils import send_notification_to_user
 
 
@@ -32,7 +33,7 @@ class InitiateTransactionView(views.APIView):
         final_amount = montant_initial
         discount_code_obj = None
 
-        # Logique d'application du code de réduction
+        # Logique d'application du code de réduction (inchangée)
         if discount_code_str:
             try:
                 discount_code_obj = DiscountCode.objects.get(
@@ -101,10 +102,12 @@ class InitiateTransactionView(views.APIView):
 
                 # Notifications après transaction réussie
                 message_expediteur = f"Votre transfert de {montant_initial} à {beneficiaire.username} a été effectué avec succès. Montant débité : {final_amount}."
-                send_notification_to_user(request.user, message_expediteur, notification_type='transaction', transaction_obj=transaction_obj)
+                send_notification_to_user(request.user, message_expediteur, notification_type='transaction',
+                                          transaction_obj=transaction_obj)
 
                 message_beneficiaire = f"Vous avez reçu {final_amount} de {request.user.username}."
-                send_notification_to_user(beneficiaire, message_beneficiaire, notification_type='transaction', transaction_obj=transaction_obj)
+                send_notification_to_user(beneficiaire, message_beneficiaire, notification_type='transaction',
+                                          transaction_obj=transaction_obj)
 
         except Exception as e:
             if 'transaction_obj' in locals():
@@ -129,15 +132,15 @@ class InitiateWithdrawalView(views.APIView):
         serializer.is_valid(raise_exception=True)
 
         amount = serializer.validated_data['amount']
-        pin_code = serializer.validated_data['pin_code'] # Récupérer le code PIN
+        pin_code = serializer.validated_data['pin_code']
 
-        # --- NOUVEAU : Vérification du code PIN ---
-        # Assurez-vous que votre modèle User a une méthode 'check_pin'
-        # ou que le PIN est stocké de manière sécurisée sur UserProfile et accessible.
-        # Exemple : if not request.user.profile.check_pin(pin_code):
-        if not hasattr(request.user, 'check_pin') or not request.user.check_pin(pin_code):
+        # --- CORRECTION ICI : Accéder au PIN via le UserProfile ---
+        if not hasattr(request.user, 'profile') or not request.user.profile.transaction_pin:
+            raise AuthenticationFailed("Code PIN de transaction non défini. Veuillez le définir d'abord.")
+
+        if not request.user.profile.check_transaction_pin(pin_code):
             raise AuthenticationFailed("Code PIN incorrect.")
-        # ------------------------------------------
+        # ----------------------------------------------------------
 
         user_wallet = request.user.wallet
 
@@ -159,7 +162,8 @@ class InitiateWithdrawalView(views.APIView):
                 )
 
                 message_retrait = f"Votre demande de retrait de {amount} est en cours de traitement."
-                send_notification_to_user(request.user, message_retrait, notification_type='transaction', transaction_obj=withdrawal_transaction)
+                send_notification_to_user(request.user, message_retrait, notification_type='transaction',
+                                          transaction_obj=withdrawal_transaction)
 
                 return response.Response({
                     "message": "Demande de retrait initiée avec succès. En attente de confirmation.",
@@ -200,6 +204,7 @@ class DiscountCodeCreateView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
 
 class DiscountCodeListView(generics.ListAPIView):
     """
