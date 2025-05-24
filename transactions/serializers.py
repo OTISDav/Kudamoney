@@ -1,65 +1,49 @@
 # transactions/serializers.py
 from rest_framework import serializers
 from .models import Transaction, DiscountCode
-from users.models import User
-from django.utils import timezone
+from users.models import User # Importez User
 from decimal import Decimal
 
 class TransactionSerializer(serializers.ModelSerializer):
-    """
-    Serializer pour le modèle Transaction (utilisé pour l'historique).
-    """
-    receiver = serializers.CharField(write_only=True, required=False, allow_blank=True, label="Bénéficiaire (téléphone ou nom d'utilisateur)")
-    sender_username = serializers.CharField(source='sender.username', read_only=True, label="Nom d'utilisateur de l'expéditeur")
-    receiver_username = serializers.CharField(source='receiver.username', read_only=True, label="Nom d'utilisateur du bénéficiaire")
-    discount_code = serializers.CharField(write_only=True, required=False, allow_blank=True, label="Code de réduction")
+    sender_username = serializers.CharField(source='sender.username', read_only=True)
+    receiver_username = serializers.CharField(source='receiver.username', read_only=True)
+    discount_code_used_code = serializers.CharField(source='discount_code_used.code', read_only=True)
 
     class Meta:
         model = Transaction
-        fields = ['id', 'sender_username', 'receiver', 'receiver_username', 'amount', 'final_amount', 'discount_code', 'status', 'transaction_type', 'created_at']
-        read_only_fields = ['sender_username', 'receiver_username', 'final_amount', 'status', 'created_at', 'transaction_type']
-
+        fields = '__all__'
+        read_only_fields = ['sender', 'receiver', 'status', 'final_amount', 'transaction_type', 'discount_code_used', 'created_at', 'updated_at']
 
 class InitiateWithdrawalSerializer(serializers.Serializer):
-    """
-    Serializer pour initier une demande de retrait, incluant le code PIN.
-    """
-    amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal('0.01'), label="Montant du retrait")
-    pin_code = serializers.CharField(max_length=6, write_only=True, required=True, label="Code PIN") # Nouveau champ pour le PIN
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
+    pin_code = serializers.CharField(max_length=6)
 
     def validate_amount(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Le montant du retrait doit être positif.")
+            raise serializers.ValidationError("Le montant doit être supérieur à zéro.")
+        # Ajoutez d'autres validations, par exemple, limites de retrait
         return value
 
-    # La validation du PIN lui-même sera faite dans la vue pour accéder à request.user
-    # ou vous pouvez ajouter une méthode de validation ici si le PIN est stocké sur UserProfile
-    # et accessible via user.profile.check_pin(value)
+    def validate_pin_code(self, value):
+        if not value.isdigit() or not (4 <= len(value) <= 6):
+            raise serializers.ValidationError("Le code PIN doit être composé de 4 à 6 chiffres.")
+        return value
 
 
 class DiscountCodeSerializer(serializers.ModelSerializer):
-    """
-    Serializer pour la création et la gestion des codes de réduction.
-    """
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+
     class Meta:
         model = DiscountCode
-        fields = ['id', 'code', 'description', 'discount_percentage', 'fixed_amount_discount',
-                  'max_uses', 'uses_count', 'valid_from', 'valid_until', 'is_active', 'created_by']
-        read_only_fields = ['code', 'uses_count', 'created_by']
+        fields = '__all__'
+        read_only_fields = ['created_at', 'created_by', 'uses_count']
 
-    def validate(self, data):
-        if data.get('discount_percentage') is None and data.get('fixed_amount_discount') is None:
-            raise serializers.ValidationError("Vous devez spécifier un pourcentage de réduction ou un montant fixe de réduction.")
 
-        if data.get('discount_percentage') is not None and data.get('fixed_amount_discount') is not None:
-            raise serializers.ValidationError("Vous ne pouvez pas spécifier à la fois un pourcentage et un montant fixe de réduction.")
+class RechargeSerializer(serializers.Serializer): # NOUVEAU : Serializer pour la recharge
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
 
-        valid_from = data.get('valid_from')
-        valid_until = data.get('valid_until')
-        if valid_from and valid_until and valid_from > valid_until:
-            raise serializers.ValidationError("La date de début de validité ne peut pas être postérieure à la date de fin.")
-
-        return data
-
-    def create(self, validated_data):
-        return super().create(validated_data)
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Le montant de la recharge doit être supérieur à zéro.")
+        # Vous pouvez ajouter ici des règles métier pour les montants min/max de recharge
+        return value
