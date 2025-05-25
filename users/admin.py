@@ -84,4 +84,4 @@ class ReferralCodeAdmin(admin.ModelAdmin):
     list_display = ('code', 'referrer', 'bonus_amount', 'is_active', 'created_at')
     list_filter = ('is_active', 'created_at')
     search_fields = ('code', 'referrer__username', 'referrer__phone')
-    readonly_fields = ('code', 'created_at', 'referrer')  # Le code est auto-généré, le créateur est l'utilisateur
+    readonly_fields = ('code', 'created_at', 'referrer')  #

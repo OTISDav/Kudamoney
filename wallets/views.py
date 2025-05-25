@@ -1,6 +1,8 @@
-from rest_framework import generics, status
+# wallets/views.py
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+from rest_framework import status
 from .models import Wallet
 from .serializers import WalletSerializer
 
@@ -20,4 +22,7 @@ class WalletView(generics.RetrieveAPIView):
         try:
             return self.request.user.wallet
         except Wallet.DoesNotExist:
-            raise NotFound("Portefeuille non trouvé pour cet utilisateur.")
+            # Cela ne devrait pas arriver si le portefeuille est créé à l'inscription
+            # mais c'est une bonne pratique de gérer ce cas.
+            return Response({"detail": "Portefeuille non trouvé pour cet utilisateur."}, status=status.HTTP_404_NOT_FOUND)
+
