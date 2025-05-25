@@ -37,12 +37,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'referral_code'  # Ajout du champ de parrainage
         )
 
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         kyc_photo_id = validated_data.pop('kyc_photo_id', None)
         kyc_selfie = validated_data.pop('kyc_selfie', None)
         kyc_photo_id_num = validated_data.pop('kyc_photo_id_num', None)  # Récupérer le numéro de pièce d'identité
         referral_code_str = validated_data.pop('referral_code', None)  # Récupérer le code de parrainage
+        pays_data = validated_data.get('pays')
 
         user = User.objects.create_user(
             phone=validated_data['phone'],
@@ -61,6 +63,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         )
         # Créer un Wallet pour le nouvel utilisateur
         Wallet.objects.create(user=user)
+
+        user_currency = 'XOF'  # Devise par défaut
+        if pays_data and pays_data.upper() == 'TCHAD':  # Vérifier si le pays est le Tchad (insensible à la casse)
+            user_currency = 'XAF'
+
+        Wallet.objects.create(user=user, currency=user_currency)
 
         # Logique de parrainage (réintégrée)
         if referral_code_str:
