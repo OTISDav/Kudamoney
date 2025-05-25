@@ -61,13 +61,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             kyc_selfie=kyc_selfie,
             kyc_photo_id_num=kyc_photo_id_num  # Enregistrer le numéro de pièce d'identité
         )
-        # Créer un Wallet pour le nouvel utilisateur
-        Wallet.objects.create(user=user)
-
+        # Créer un Wallet pour le nouvel utilisateur avec la bonne devise
         user_currency = 'XOF'  # Devise par défaut
-        if pays_data and pays_data.upper() == 'TCHAD':  # Vérifier si le pays est le Tchad (insensible à la casse)
+        if pays_data and pays_data.upper() == 'TCHAD':
             user_currency = 'XAF'
 
+        # Créer UN SEUL portefeuille avec la bonne devise
         Wallet.objects.create(user=user, currency=user_currency)
 
         # Logique de parrainage (réintégrée)
