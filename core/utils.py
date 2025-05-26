@@ -2,11 +2,22 @@
 from notifications.models import Notification
 from django.conf import settings
 from decimal import Decimal, ROUND_HALF_UP
-
+from rest_framework.views import exception_handler
 
 # Importez d'autres modules nécessaires pour l'envoi réel (ex: Twilio, Firebase)
 # from twilio.rest import Client
 # from firebase_admin import messaging
+
+def custom_exception_handler(exc, context):
+    """
+    Gère les erreurs DRF personnalisées.
+    """
+    response = exception_handler(exc, context)
+
+    if response is not None:
+        response.data['status_code'] = response.status_code
+
+    return response
 
 def send_notification_to_user(user, message, notification_type='system', transaction_obj=None):
     """
@@ -47,27 +58,19 @@ def send_notification_to_user(user, message, notification_type='system', transac
     #     print(f"Erreur lors de l'envoi de la notification push à {user.username}: {e}")
     # -------------------------------------------
 
-
 def get_exchange_rate(source_currency, target_currency):
     """
     Retourne le taux de change pour la conversion de source_currency à target_currency.
     Pour XAF et XOF, la parité est fixe, mais des frais de conversion peuvent être ajoutés.
     """
-    # Exemple de taux de change fixe avec des frais de conversion
-    # Pour l'instant, 1 XAF = 1 XOF (parité fixe)
-    # Vous pouvez ajouter une logique pour récupérer les taux depuis une API externe si nécessaire
-
     if source_currency == target_currency:
         return Decimal('1.00')
 
-    # Parité fixe entre XAF et XOF (1 pour 1)
     if (source_currency == 'XAF' and target_currency == 'XOF') or \
             (source_currency == 'XOF' and target_currency == 'XAF'):
         return Decimal('1.00')
 
-    # Ajoutez d'autres paires de devises si nécessaire
     raise ValueError(f"Taux de change non défini pour {source_currency} vers {target_currency}")
-
 
 def convert_currency(amount, source_currency, target_currency):
     """
@@ -75,22 +78,14 @@ def convert_currency(amount, source_currency, target_currency):
     Retourne le montant converti et le montant des frais de conversion de la plateforme.
     """
     if source_currency == target_currency:
-        return amount, Decimal('0.00')  # Pas de frais si même devise
+        return amount, Decimal('0.00')
 
     rate = get_exchange_rate(source_currency, target_currency)
-
-    # Calcul du montant converti sur la base du taux 1:1
     converted_amount = amount * rate
+    conversion_fee_percentage = Decimal('0.005')
+    conversion_fee = amount * conversion_fee_percentage
 
-    # Frais de conversion spécifiques à XAF/XOF (si applicable)
-    # C'est un frais que la plateforme prend sur la conversion elle-même
-    conversion_fee_percentage = Decimal('0.005')  # 0.5% de frais de conversion pour la plateforme
-    conversion_fee = amount * conversion_fee_percentage  # Les frais sont calculés sur le montant d'origine
-
-    # Arrondir les montants et frais à 2 décimales
-    return converted_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), conversion_fee.quantize(Decimal('0.01'),
-                                                                                                       rounding=ROUND_HALF_UP)
-
+    return converted_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), conversion_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 def calculate_fee(amount, transaction_type, source_currency=None, target_currency=None):
     """
@@ -100,15 +95,10 @@ def calculate_fee(amount, transaction_type, source_currency=None, target_currenc
     platform_fee = Decimal('0.00')
 
     if transaction_type == 'recharge':
-        # Frais de votre plateforme sur la recharge (exemple: 1% du montant rechargé)
-        platform_fee = amount * Decimal('0.01')  # 1% de frais de plateforme
-
+        platform_fee = amount * Decimal('0.01')
     elif transaction_type == 'withdrawal':
-        # Frais de votre plateforme sur le retrait (exemple: 2% du montant)
-        platform_fee = amount * Decimal('0.02')  # 2% de frais de plateforme
-
+        platform_fee = amount * Decimal('0.02')
     elif transaction_type == 'send':
-        # Pas de frais de plateforme pour les envois entre utilisateurs par défaut
         platform_fee = Decimal('0.00')
 
     return platform_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
