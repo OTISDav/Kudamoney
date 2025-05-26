@@ -142,6 +142,7 @@ class UserProfileView(views.APIView):
             return Response({"error": "Profil non trouvé."}, status=status.HTTP_404_NOT_FOUND)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class KYCUploadView(APIView):
     """
     Vue pour permettre à un utilisateur authentifié de télécharger ses documents KYC.
