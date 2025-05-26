@@ -145,17 +145,23 @@ class UserProfileView(views.APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class KYCUploadView(APIView):
     """
-    Vue pour permettre à un utilisateur authentifié de télécharger ses documents KYC.
+    Vue pour permettre à un utilisateur (ou un admin) de télécharger des documents KYC.
     """
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [IsAuthenticated]  # Assurez-vous que l'utilisateur est authentifié
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        # L'utilisateur est déjà authentifié grâce à permission_classes
+    def post(self, request, id=None, *args, **kwargs):
         try:
-            profile = request.user.profile
+            if id is not None:
+                # Si un id est fourni, seul un admin peut uploader pour un autre utilisateur
+                if not request.user.is_staff:
+                    return Response({"error": "Vous n’êtes pas autorisé à uploader pour un autre utilisateur."},
+                                    status=status.HTTP_403_FORBIDDEN)
+                profile = UserProfile.objects.get(user__id=id)
+            else:
+                profile = request.user.profile
+
         except UserProfile.DoesNotExist:
-            # Ceci ne devrait pas arriver si UserProfile est créé à l'inscription
             return Response({"error": "Profil utilisateur introuvable."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = KYCUploadSerializer(profile, data=request.data, partial=True)
