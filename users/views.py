@@ -143,7 +143,10 @@ class UserProfileView(views.APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
-class KYCUploadView(APIView):
+class CsrfExemptAPIView(APIView):
+    pass
+@method_decorator(csrf_exempt, name='dispatch')
+class KYCUploadView(CsrfExemptAPIView):
     """
     Vue pour permettre à un utilisateur (ou un admin) de télécharger des documents KYC.
     """
