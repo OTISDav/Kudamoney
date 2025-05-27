@@ -146,30 +146,25 @@ class UserProfileView(views.APIView):
 class CsrfExemptAPIView(APIView):
     pass
 @method_decorator(csrf_exempt, name='dispatch')
-class KYCUploadView(CsrfExemptAPIView):
+class KYCUploadView(views.APIView):
     """
-    Vue pour permettre à un utilisateur (ou un admin) de télécharger des documents KYC.
+    Vue pour télécharger les documents KYC (photo d'identité, selfie, numéro d'identité).
+    Accessible sans authentification pour les utilisateurs venant de s'inscrire,
+    mais nécessite l'ID de l'utilisateur dans l'URL.
     """
-    parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [AllowAny]
-    def post(self, request, id=None, *args, **kwargs):
-        try:
-            if id is not None:
-                # Si un id est fourni, seul un admin peut uploader pour un autre utilisateur
-                if not request.user.is_staff:
-                    return Response({"error": "Vous n’êtes pas autorisé à uploader pour un autre utilisateur."},
-                                    status=status.HTTP_403_FORBIDDEN)
-                profile = UserProfile.objects.get(user__id=id)
-            else:
-                profile = request.user.profile
+    parser_classes = [MultiPartParser, FormParser] # Pour gérer les fichiers
+    permission_classes = [AllowAny] # Permet l'accès sans authentification
 
+    def post(self, request, user_id, *args, **kwargs):
+        try:
+            profile = UserProfile.objects.get(user_id=user_id)
         except UserProfile.DoesNotExist:
-            return Response({"error": "Profil utilisateur introuvable."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "UserProfile non trouvé pour cet utilisateur."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = KYCUploadSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': 'Documents KYC envoyés avec succès.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'KYC envoyé avec succès. Votre profil sera vérifié par un administrateur.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
