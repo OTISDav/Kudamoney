@@ -18,7 +18,7 @@ urlpatterns = [
     # Profil utilisateur et KYC
     path('profile/', UserProfileView.as_view(), name='user_profile'),
     path('kyc-upload/', KYCUploadView.as_view(), name='user_kyc_upload'), # URL pour l'upload KYC (après inscription)
-    path('kyc-upload/<int:id>/', KYCUploadView.as_view(), name='kyc_upload_with_id'),
+    # path('kyc-upload/<int:id>/', KYCUploadView.as_view(), name='kyc_upload_with_id'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
     path('set-pin/', SetTransactionPinView.as_view(), name='set_transaction_pin'),
 
