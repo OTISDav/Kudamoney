@@ -14,6 +14,22 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['sender', 'receiver', 'status', 'final_amount', 'transaction_type', 'discount_code_used', 'created_at', 'updated_at']
 
+
+class TransactionCreateSerializer(serializers.Serializer):
+    receiver = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=15, decimal_places=2)
+    discount_code = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_receiver(self, value):
+        if not value:
+            raise serializers.ValidationError("Le bénéficiaire est requis.")
+        return value
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Le montant doit être supérieur à zéro.")
+        return value
+
 class InitiateWithdrawalSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=15, decimal_places=2)
     pin_code = serializers.CharField(max_length=6)

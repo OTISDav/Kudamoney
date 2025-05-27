@@ -2,7 +2,7 @@
 from rest_framework import generics, views, response, status
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .models import Transaction, DiscountCode, TRANSACTION_TYPE_CHOICES
-from .serializers import TransactionSerializer, DiscountCodeSerializer, InitiateWithdrawalSerializer, RechargeSerializer
+from .serializers import TransactionSerializer, DiscountCodeSerializer, InitiateWithdrawalSerializer, RechargeSerializer, TransactionCreateSerializer
 from wallets.models import Wallet
 from django.db import transaction
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
@@ -23,7 +23,7 @@ class InitiateTransactionView(views.APIView):
     serializer_class = TransactionSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        serializer = TransactionCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         montant_initial = serializer.validated_data['amount']
