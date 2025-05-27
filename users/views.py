@@ -146,11 +146,13 @@ class UserProfileView(views.APIView):
     pass
 @method_decorator(csrf_exempt, name='dispatch')
 class KYCUploadView(APIView):
-    parser_classes = [MultiPartParser, FormParser]
+    # permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]  # pour gérer les fichiers
     permission_classes = [AllowAny]
 
-    def post(self, request, user_id, *args, **kwargs):
+    def post(self, request, user_id, *args, **kwargs): #user_id esta aqui
         try:
+            #profile = request.user.profile  # UserProfile lié à l'utilisateur
             profile = UserProfile.objects.get(user_id=user_id)
         except UserProfile.DoesNotExist:
             return Response({"error": "UserProfile not found for this user."}, status=status.HTTP_404_NOT_FOUND)
