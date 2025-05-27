@@ -148,7 +148,7 @@ class KYCUploadView(APIView):
     Vue pour permettre à un utilisateur (ou un admin) de télécharger des documents KYC.
     """
     parser_classes = [MultiPartParser, FormParser]
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request, id=None, *args, **kwargs):
         try:
