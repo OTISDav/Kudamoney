@@ -145,11 +145,7 @@ class UserProfileView(views.APIView):
 
     pass
 @method_decorator(csrf_exempt, name='dispatch')
-class KYCUploadView(views.APIView):
-    """
-    Vue pour télécharger les documents KYC (photo d'identité, selfie, numéro d'identité).
-    Accessible sans authentification pour les utilisateurs venant de s'inscrire.
-    """
+class KYCUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [AllowAny]
 
@@ -157,15 +153,12 @@ class KYCUploadView(views.APIView):
         try:
             profile = UserProfile.objects.get(user_id=user_id)
         except UserProfile.DoesNotExist:
-            return Response({"error": "UserProfile non trouvé pour cet utilisateur."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "UserProfile not found for this user."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = KYCUploadSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                {'message': 'KYC envoyé avec succès. Votre profil sera vérifié par un administrateur.'},
-                status=status.HTTP_200_OK
-            )
+            return Response({'message': 'KYC envoyé avec succès.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(views.APIView):
