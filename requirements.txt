@@ -38,4 +38,6 @@ Pillow
 dotenv
 psycopg[binary]
 twilio
+drf-yasg
+
 
