@@ -1,4 +1,3 @@
-# users/views.py
 import random
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils.decorators import method_decorator
