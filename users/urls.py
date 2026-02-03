@@ -4,8 +4,10 @@ from .views import (
     UserRegistrationView, UserLoginView, UserProfileView,
     UserOTPVerificationView, KYCUploadView, ChangePasswordView,
     AdminVerifyProfileView, ReferralCodeView, SetTransactionPinView,
-    UserListView # Assurez-vous que UserListView est importé si vous le gardez
+    UserListView
 )
+from . import views
+
 
 urlpatterns = [
     # Authentification et gestion de compte
@@ -25,5 +27,9 @@ urlpatterns = [
 
     # Vues d'administration
     path('admin/verify-profile/<int:pk>/', AdminVerifyProfileView.as_view(), name='admin_verify_profile'),
-    path('admin/list/', UserListView.as_view(), name='user_list_admin'), # Pour lister les utilisateurs (admin)
+    path('admin/list/', UserListView.as_view(), name='user_list_admin'),
+
+
+    #urls pour run le render et l'activer
+    path('health/', views.health_check, name='health_check'),
 ]

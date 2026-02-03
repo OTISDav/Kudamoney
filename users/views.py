@@ -7,6 +7,7 @@ from rest_framework import generics, permissions, status, views
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.http import JsonResponse
 from rest_framework import serializers
 from rest_framework.views import APIView  # <--- Assurez-vous que cette ligne est présente
 from rest_framework.exceptions import AuthenticationFailed
@@ -229,3 +230,8 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+@csrf_exempt
+def health_check(view):
+    return JsonResponse({"status": "ok"})
