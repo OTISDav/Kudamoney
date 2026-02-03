@@ -13,7 +13,7 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user_registration'),
     path('verify-otp/', UserOTPVerificationView.as_view(), name='user_otp_verification'),
     path('login/', UserLoginView.as_view(), name='user_login'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Pour rafraîchir les tokens JWT
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # Profil utilisateur et KYC
     path('profile/', UserProfileView.as_view(), name='user_profile'),

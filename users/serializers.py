@@ -22,10 +22,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    kyc_photo_id = serializers.ImageField(required=False, allow_null=True)  # Ajout du champ KYC
-    kyc_selfie = serializers.ImageField(required=False, allow_null=True)  # Ajout du champ KYC
+    kyc_photo_id = serializers.ImageField(required=False, allow_null=True)
+    kyc_selfie = serializers.ImageField(required=False, allow_null=True)
     kyc_photo_id_num = serializers.CharField(required=False,
-                                             allow_blank=True)  # NOUVEAU: Ajout du champ pour le numéro de pièce d'identité
+                                             allow_blank=True)
     referral_code = serializers.CharField(write_only=True, required=False, allow_blank=True,
                                           label="Code de parrainage")  # Réintégré
 
@@ -33,8 +33,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'phone', 'password', 'pays', 'username',
-            'kyc_photo_id', 'kyc_selfie', 'kyc_photo_id_num',  # Ajout des champs KYC au Meta
-            'referral_code'  # Ajout du champ de parrainage
+            'kyc_photo_id', 'kyc_selfie', 'kyc_photo_id_num',
+            'referral_code'
         )
 
 
@@ -42,8 +42,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         kyc_photo_id = validated_data.pop('kyc_photo_id', None)
         kyc_selfie = validated_data.pop('kyc_selfie', None)
-        kyc_photo_id_num = validated_data.pop('kyc_photo_id_num', None)  # Récupérer le numéro de pièce d'identité
-        referral_code_str = validated_data.pop('referral_code', None)  # Récupérer le code de parrainage
+        kyc_photo_id_num = validated_data.pop('kyc_photo_id_num', None)
+        referral_code_str = validated_data.pop('referral_code', None)
         pays_data = validated_data.get('pays')
 
         user = User.objects.create_user(
@@ -54,33 +54,28 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
 
-        # Créer UserProfile et enregistrer les données KYC
         UserProfile.objects.create(
             user=user,
             kyc_photo_id=kyc_photo_id,
             kyc_selfie=kyc_selfie,
-            kyc_photo_id_num=kyc_photo_id_num  # Enregistrer le numéro de pièce d'identité
+            kyc_photo_id_num=kyc_photo_id_num
         )
-        # Créer un Wallet pour le nouvel utilisateur avec la bonne devise
         user_currency = 'XOF'  # Devise par défaut
         if pays_data and pays_data.upper() == 'TCHAD':
             user_currency = 'XAF'
 
-        # Créer UN SEUL portefeuille avec la bonne devise
         Wallet.objects.create(user=user, currency=user_currency)
 
-        # Logique de parrainage (réintégrée)
         if referral_code_str:
             try:
                 referral_code_obj = ReferralCode.objects.get(code=referral_code_str, is_active=True)
                 referrer_user = referral_code_obj.referrer
 
-                # Appliquer le bonus au parrain (referrer)
+
                 referrer_wallet = referrer_user.wallet
                 referrer_wallet.balance += referral_code_obj.bonus_amount
                 referrer_wallet.save()
 
-                # Appliquer le bonus au filleul (nouvel utilisateur)
                 filleul_wallet = user.wallet
                 filleul_wallet.balance += referral_code_obj.bonus_amount
                 filleul_wallet.save()
@@ -100,10 +95,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = [
             'id', 'user',
-            'kyc_photo_id_url', 'kyc_photo_id_num',  # Réintégré kyc_photo_id_num
+            'kyc_photo_id_url', 'kyc_photo_id_num',
             'kyc_selfie_url', 'is_verified'
         ]
-        read_only_fields = ('is_verified',)  # is_verified est en lecture seule
+        read_only_fields = ('is_verified',)
 
     def get_user(self, obj):
         return {
@@ -137,7 +132,6 @@ class OTPSerializer(serializers.Serializer):
     otp = serializers.CharField(max_length=6, write_only=True)
 
     def validate(self, data):
-        # from .models import OTPCode  # Pas nécessaire si OTPCode est déjà importé en haut
         phone = data.get('phone')
         otp = data.get('otp')
 
@@ -180,17 +174,15 @@ class ChangePasswordSerializer(serializers.Serializer):
         return user
 
 
-class ReferralCodeSerializer(serializers.ModelSerializer):  # Réintégré
+class ReferralCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReferralCode
         fields = ['code', 'bonus_amount', 'is_active', 'created_at']
         read_only_fields = ['code', 'bonus_amount', 'is_active', 'created_at']
 
 
-class SetTransactionPinSerializer(serializers.Serializer):  # Réintégré
-    """
-    Serializer pour définir ou changer le code PIN de transaction.
-    """
+class SetTransactionPinSerializer(serializers.Serializer):
+
     current_pin = serializers.CharField(max_length=6, write_only=True, required=False, allow_blank=True,
                                         label="Code PIN actuel (si modification)")
     new_pin = serializers.CharField(max_length=6, write_only=True, required=True, label="Nouveau Code PIN")
@@ -206,16 +198,15 @@ class SetTransactionPinSerializer(serializers.Serializer):  # Réintégré
         if new_pin != confirm_new_pin:
             raise serializers.ValidationError("Le nouveau code PIN et la confirmation ne correspondent pas.")
 
-        if not new_pin.isdigit() or not (4 <= len(new_pin) <= 6):  # Validation pour 4 à 6 chiffres
+        if not new_pin.isdigit() or not (4 <= len(new_pin) <= 6):
             raise serializers.ValidationError("Le code PIN doit être composé de 4 à 6 chiffres.")
 
-        # Si un PIN existe déjà, vérifier le PIN actuel
         if user_profile.transaction_pin:
             if not current_pin:
                 raise serializers.ValidationError("Le code PIN actuel est requis pour la modification.")
             if not user_profile.check_transaction_pin(current_pin):
                 raise serializers.ValidationError("Le code PIN actuel est incorrect.")
-        elif current_pin:  # Si aucun PIN n'existe mais un current_pin est fourni
+        elif current_pin:
             raise serializers.ValidationError("Aucun code PIN actuel n'est défini.")
 
         return data
@@ -223,5 +214,5 @@ class SetTransactionPinSerializer(serializers.Serializer):  # Réintégré
     def save(self, **kwargs):
         user_profile = self.context['request'].user.profile
         new_pin = self.validated_data['new_pin']
-        user_profile.set_transaction_pin(new_pin)  # Utilise la méthode du modèle pour hacher et sauvegarder
+        user_profile.set_transaction_pin(new_pin)
         return user_profile
