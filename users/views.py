@@ -36,9 +36,13 @@ def generate_otp():
     return str(random.randint(100000, 999999))
 
 
-
+logger = logging.getLogger(__name__)
 
 def send_otp(phone, otp):
+
+    print(f"OTP DEBUG {phone} : {otp}")
+
+    logger.info(f"OTP DEBUG {phone} : {otp}")
 
     message_body = f"Votre code OTP est : {otp}"
 
@@ -49,10 +53,13 @@ def send_otp(phone, otp):
             to=phone
         )
 
-        # Log avec OTP
-        logger.info(f"OTP envoyé à {phone} | Code: {otp}")
+        print("SMS envoye")
+
+        logger.info(f"SMS envoye a {phone}")
 
     except Exception as e:
+
+        print("Erreur Twilio : ", e)
         logger.error(f"Erreur Twilio pour {phone} : {e}")
 
 
