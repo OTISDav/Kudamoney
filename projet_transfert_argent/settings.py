@@ -106,11 +106,11 @@ load_dotenv()
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        ssl_require=True
+        default='postgresql://neondb_owner:npg_Vtcm6nR9diUL@ep-floral-pond-ahpq0h3r-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+        conn_max_age=600
     )
 }
+
 
 
 # Password validation
