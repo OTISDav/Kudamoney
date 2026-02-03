@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import dj_database_url
-
+from dotenv import load_dotenv
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +32,7 @@ SECRET_KEY = "django-insecure-s*-4aq_ac=i6&4vmb)j8_9l6nzzj+b)qeqjpn9d)m*l0k@23o=
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "kudamoney.onrender.com",
+    "kudamoney-lqhb.onrender.com",
     "localhost",
     "127.0.0.1"
 ]
@@ -128,14 +128,15 @@ WSGI_APPLICATION = "projet_transfert_argent.wsgi.application"
 #     }
 # }
 
+load_dotenv()  # Charge le .env
+
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://neondb_owner:npg_6Y3wGqWdIvVj@ep-green-bread-a46ta4sf-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require',
-        conn_max_age=600
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        ssl_require=True
     )
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
