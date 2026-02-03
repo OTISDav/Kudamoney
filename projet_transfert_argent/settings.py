@@ -1,6 +1,8 @@
 import dj_database_url
 from dotenv import load_dotenv
 import os
+from decouple import config
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -128,6 +130,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
+
+
+TWILIO_ACCOUNT_SID = config("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = config("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = config("TWILIO_PHONE_NUMBER")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

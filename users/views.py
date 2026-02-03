@@ -23,15 +23,38 @@ from .serializers import (
 from core.utils import send_notification_to_user
 
 
+
+import logging
+from twilio.rest import Client
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
 def generate_otp():
     return str(random.randint(100000, 999999))
 
 
+
+
 def send_otp(phone, otp):
 
-    print(f"OTP envoyé à {phone} : {otp}")
-    # Ici, vous intégreriez votre service SMS réel (ex: Twilio)
-    pass
+    message_body = f"Votre code OTP est : {otp}"
+
+    try:
+        client.messages.create(
+            body=message_body,
+            from_=settings.TWILIO_PHONE_NUMBER,
+            to=phone
+        )
+
+        # Log avec OTP
+        logger.info(f"OTP envoyé à {phone} | Code: {otp}")
+
+    except Exception as e:
+        logger.error(f"Erreur Twilio pour {phone} : {e}")
+
 
 
 class UserRegistrationView(views.APIView):
