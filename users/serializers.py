@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, UserProfile, OTPCode, ReferralCode  # Assurez-vous que ReferralCode est importé
+from .models import User, UserProfile, OTPCode, ReferralCode
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password, check_password  # Importez check_password

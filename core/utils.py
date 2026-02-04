@@ -37,15 +37,15 @@ def send_notification_to_user(user, message, notification_type='system', transac
     print(f"Notification créée pour {user.username} ({notification_type}): {message}")
 
     # Envoyer le SMS si le numéro de téléphone est présent
-    if user.phone_number:  # ou user.phone selon ton modèle
+    if user.phone:
         try:
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             sms = client.messages.create(
                 body=message,
                 from_=settings.TWILIO_PHONE_NUMBER,
-                to=user.phone_number
+                to=user.phone
             )
-            print(f"SMS envoyé à {user.phone_number}: SID {sms.sid}")
+            print(f"SMS envoyé à {user.phone}: SID {sms.sid}")
         except Exception as e:
             print(f"Erreur en envoyant le SMS: {e}")
 
