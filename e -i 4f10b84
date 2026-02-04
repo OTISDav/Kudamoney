@@ -1,0 +1,72 @@
+[33m72ee32a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m partie renvoyer otp
+[33m8efea3c[m partie renvoyer otp
+[33m4f10b84[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m ajout urls notifications details
+[33mcdbd66c[m ajout urls notifications
+[33mb117271[m documentation swagger & redoc
+[33mc6b563f[m documentation swagger & redoc
+[33m9234fd8[m documentation swagger & redoc
+[33m5fdd3b4[m postgree neondb
+[33m620dfc8[m postgree neondb
+[33m8e03640[m correction .env et Twilio dans
+[33mcbb268f[m twilio
+[33mf0447d2[m app/ clean code
+[33m2e0770f[m app/ clean code
+[33mc320bfe[m reprise du projet
+[33mf5a071e[m app support
+[33m4385d52[m app support
+[33m02f1ede[m app support
+[33mef6f36d[m app support
+[33m258649a[m app support
+[33me048bce[m app support
+[33mb2bb588[m app support
+[33m5a5437d[m app support
+[33mbb36a1f[m app support
+[33mcfe8ade[m app support
+[33mdd1acf0[m app support
+[33m9913723[m app support
+[33ma6c1061[m app support
+[33m7a175a7[m app support
+[33m793ab40[m app support
+[33me7d1105[m app support
+[33m17bfd54[m app support
+[33m14ca1b8[m app support
+[33m3fbab24[m app support
+[33m88b7d5b[m app ransactions & uses
+[33m72f1582[m app ransactions & uses
+[33m062b205[m app ransactions & uses
+[33me31f9ee[m app ransactions & uses
+[33m36ddcb8[m app ransactions & uses
+[33m4845b66[m app ransactions & uses
+[33m3f7650e[m app ransactions & uses
+[33m303dfeb[m app ransactions (admin.py)
+[33m2d55db8[m app ransactions (admin.py)
+[33m00193bb[m app ransactions (admin.py)
+[33m86b3a57[m app ransactions (admin.py)
+[33m261d0d1[m app ransactions
+[33m637fb43[m app ransactions
+[33m6bc031e[m app ransactions
+[33mb83a82a[m app ransactions
+[33m9691060[m debut app wallet
+[33m762db10[m debut app wallet
+[33m0e49fd0[m kyc
+[33mc538457[m kyc
+[33ma7ccb45[m kyc
+[33m35477a1[m kyc
+[33mbf9fc06[m kyc
+[33m0af128f[m kyc
+[33m5ea130d[m remoce mdp
+[33m9797fea[m resolution de pb de recuperation de profile
+[33mdd82621[m resolution de pb de recuperation de profile
+[33m321edd2[m resolution de pb de recuperation de profile
+[33m93942c0[m resolution de pb de recuperation de profile
+[33mdcb5708[m recuperation du profile
+[33mb287a3c[m recuperation du profile
+[33m6735541[m recuperation du profile
+[33mb680c54[m recuperation du profile
+[33meb4afa1[m recuperation du profile
+[33m9221a95[m recuperation du profile
+[33m4d9c507[m deploiement sur render
+[33mab21855[m deploiement sur render
+[33maa04f38[m deploiement sur render
+[33m2078b50[m first commit
+[33m7628159[m first commit
