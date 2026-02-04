@@ -16,11 +16,10 @@ from core.utils import send_notification_to_user
 
 
 class InitiateTransactionView(views.APIView):
-    """
-    Vue pour initier une transaction de transfert d'argent (envoi).
-    """
+
     permission_classes = [IsAuthenticated]
     serializer_class = TransactionSerializer
+
 
     def post(self, request, *args, **kwargs):
         serializer = TransactionCreateSerializer(data=request.data)
