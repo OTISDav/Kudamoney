@@ -17,7 +17,7 @@ from .serializers import (
     UserRegistrationSerializer, OTPSerializer,
     UserProfileSerializer, UserSerializer,
     KYCUploadSerializer, ReferralCodeSerializer,
-    ChangePasswordSerializer, SetTransactionPinSerializer
+    ChangePasswordSerializer, SetTransactionPinSerializer, ResendOTPSerializer
 )
 
 # Importez la fonction d'envoi de notification depuis core.utils
@@ -235,3 +235,38 @@ class UserListView(generics.ListAPIView):
 @csrf_exempt
 def health_check(view):
     return JsonResponse({"status": "ok"})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ResendOTPView(APIView):
+
+    permission_classes = [AllowAny]
+    serializer_class = ResendOTPSerializer
+
+    def post(self, request):
+
+        serializer = self.serializer_class(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        phone = serializer.validated_data["phone"]
+
+        user = User.objects.get(phone=phone)
+
+        # Supprimer anciens OTP
+        OTPCode.objects.filter(user=user).delete()
+
+        # Nouveau OTP
+        otp = generate_otp()
+        OTPCode.objects.create(user=user, code=otp)
+
+        send_otp(phone, otp)
+
+        return Response(
+            {"message": "OTP renvoyé avec succès"},
+            status=status.HTTP_200_OK
+        )

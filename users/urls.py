@@ -4,7 +4,7 @@ from .views import (
     UserRegistrationView, UserLoginView, UserProfileView,
     UserOTPVerificationView, KYCUploadView, ChangePasswordView,
     AdminVerifyProfileView, ReferralCodeView, SetTransactionPinView,
-    UserListView
+    UserListView, ResendOTPView
 )
 from . import views
 
@@ -15,6 +15,10 @@ urlpatterns = [
     path('verify-otp/', UserOTPVerificationView.as_view(), name='user_otp_verification'),
     path('login/', UserLoginView.as_view(), name='user_login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+
+    #resend otp
+    path('resend-otp/', ResendOTPView.as_view(), name='resend-otp'),
 
     # Profil utilisateur et KYC
     path('profile/', UserProfileView.as_view(), name='user_profile'),

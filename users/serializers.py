@@ -216,3 +216,19 @@ class SetTransactionPinSerializer(serializers.Serializer):
         new_pin = self.validated_data['new_pin']
         user_profile.set_transaction_pin(new_pin)
         return user_profile
+
+
+from rest_framework import serializers
+from .models import User
+
+
+class ResendOTPSerializer(serializers.Serializer):
+
+    phone = serializers.CharField(max_length=20)
+
+    def validate_phone(self, value):
+
+        if not User.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("Utilisateur introuvable.")
+
+        return value
