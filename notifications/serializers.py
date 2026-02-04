@@ -12,5 +12,4 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id', 'user', 'user_username', 'message', 'notification_type', 'is_read', 'created_at', 'transaction_id']
-        read_only_fields = ['user', 'created_at', 'transaction_id', 'user_username'] # L'utilisateur est défini par la vue, la date est auto_add
-
+        read_only_fields = ['user', 'created_at', 'transaction_id', 'user_username']

@@ -5,6 +5,19 @@ from .models import Notification
 from .serializers import NotificationSerializer
 from django.db.models import Q # Pour les requêtes complexes
 
+
+
+class NotificationDetailView(generics.RetrieveAPIView):
+    """
+    Vue pour récupérer une notification spécifique de l'utilisateur connecté.
+    """
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # L'utilisateur ne peut récupérer que ses propres notifications
+        return Notification.objects.filter(user=self.request.user)
+
 class NotificationListView(generics.ListAPIView):
     """
     Vue pour lister les notifications de l'utilisateur connecté.
