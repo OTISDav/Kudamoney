@@ -2,9 +2,7 @@ from rest_framework import serializers
 from .models import Notification
 
 class NotificationSerializer(serializers.ModelSerializer):
-    """
-    Serializer pour le modèle Notification.
-    """
+
     user_username = serializers.CharField(source='user.username', read_only=True, label="Nom d'utilisateur")
     transaction_id = serializers.IntegerField(source='transaction.id', read_only=True, label="ID de transaction", allow_null=True)
 

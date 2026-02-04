@@ -7,19 +7,16 @@ NOTIFICATION_TYPE_CHOICES = (
     ('kyc_status', 'Statut KYC'),
     ('promotion', 'Promotion'),
     ('system', 'Système'),
-    ('otp', 'OTP'), # Ajouté pour les notifications OTP
+    ('otp', 'OTP'),
 )
 
 class Notification(models.Model):
-    """
-    Modèle représentant une notification envoyée à un utilisateur.
-    """
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications', verbose_name="Utilisateur")
     message = models.TextField(verbose_name="Message")
     notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPE_CHOICES, default='system', verbose_name="Type de notification")
     is_read = models.BooleanField(default=False, verbose_name="Lu")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
-    # Champ optionnel pour lier à une transaction spécifique
     transaction = models.ForeignKey('transactions.Transaction', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Transaction associée")
 
     def __str__(self):

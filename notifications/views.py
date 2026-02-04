@@ -1,4 +1,3 @@
-# notifications/views.py
 from rest_framework import generics, views, response, status
 from rest_framework.permissions import IsAuthenticated
 from .models import Notification
@@ -8,20 +7,14 @@ from django.db.models import Q # Pour les requêtes complexes
 
 
 class NotificationDetailView(generics.RetrieveAPIView):
-    """
-    Vue pour récupérer une notification spécifique de l'utilisateur connecté.
-    """
+
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # L'utilisateur ne peut récupérer que ses propres notifications
         return Notification.objects.filter(user=self.request.user)
 
 class NotificationListView(generics.ListAPIView):
-    """
-    Vue pour lister les notifications de l'utilisateur connecté.
-    """
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -29,9 +22,7 @@ class NotificationListView(generics.ListAPIView):
         return Notification.objects.filter(user=self.request.user).order_by('-created_at')
 
 class NotificationMarkAsReadView(views.APIView):
-    """
-    Vue pour marquer une ou toutes les notifications comme lues.
-    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, notification_id=None, *args, **kwargs):
@@ -49,14 +40,11 @@ class NotificationMarkAsReadView(views.APIView):
             return response.Response({"message": "Toutes les notifications ont été marquées comme lues."}, status=status.HTTP_200_OK)
 
 class NotificationDeleteView(generics.DestroyAPIView):
-    """
-    Vue pour supprimer une notification spécifique de l'utilisateur connecté.
-    """
+
     queryset = Notification.objects.all()
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # S'assurer que l'utilisateur ne peut supprimer que ses propres notifications
         return self.queryset.filter(user=self.request.user)
 
     def delete(self, request, *args, **kwargs):
