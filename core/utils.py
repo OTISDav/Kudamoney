@@ -45,28 +45,28 @@ def send_notification_to_user(user, message, notification_type='system', transac
 #         except Exception as e:
 #             print(f"Erreur en envoyant le SMS: {e}")
 #
-# def get_exchange_rate(source_currency, target_currency):
-#
-#     if source_currency == target_currency:
-#         return Decimal('1.00')
-#
-#     if (source_currency == 'XAF' and target_currency == 'XOF') or \
-#             (source_currency == 'XOF' and target_currency == 'XAF'):
-#         return Decimal('1.00')
-#
-#     raise ValueError(f"Taux de change non défini pour {source_currency} vers {target_currency}")
-#
-# def convert_currency(amount, source_currency, target_currency):
-#
-#     if source_currency == target_currency:
-#         return amount, Decimal('0.00')
-#
-#     rate = get_exchange_rate(source_currency, target_currency)
-#     converted_amount = amount * rate
-#     conversion_fee_percentage = Decimal('0.005')
-#     conversion_fee = amount * conversion_fee_percentage
-#
-#     return converted_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), conversion_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+def get_exchange_rate(source_currency, target_currency):
+
+    if source_currency == target_currency:
+        return Decimal('1.00')
+
+    if (source_currency == 'XAF' and target_currency == 'XOF') or \
+            (source_currency == 'XOF' and target_currency == 'XAF'):
+        return Decimal('1.00')
+
+    raise ValueError(f"Taux de change non défini pour {source_currency} vers {target_currency}")
+
+def convert_currency(amount, source_currency, target_currency):
+
+    if source_currency == target_currency:
+        return amount, Decimal('0.00')
+
+    rate = get_exchange_rate(source_currency, target_currency)
+    converted_amount = amount * rate
+    conversion_fee_percentage = Decimal('0.005')
+    conversion_fee = amount * conversion_fee_percentage
+
+    return converted_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP), conversion_fee.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
 def calculate_fee(amount, transaction_type, source_currency=None, target_currency=None):
 
