@@ -15,5 +15,5 @@ urlpatterns = [
     path('history/', TransactionHistoryView.as_view(), name='transaction_history'),
     path('discount-codes/create/', DiscountCodeCreateView.as_view(), name='create_discount_code'),
     path('discount-codes/', DiscountCodeListView.as_view(), name='list_discount_codes'),
-    path('recharge/', RechargeAccountView.as_view(), name='recharge_account'), # NOUVEAU : URL pour la recharge
+    path('recharge/', RechargeAccountView.as_view(), name='recharge_account'),
 ]

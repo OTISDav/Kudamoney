@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/users/', include('users.urls')),
     path('api/wallets/', include('wallets.urls')),
     path('api/transactions/', include('transactions.urls')),
+    path('api/notifications/', include('notifications.urls')),
     path('api/support/', include('support.urls')),
 
                   # Swagger UI
